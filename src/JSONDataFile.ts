@@ -17,6 +17,13 @@ export class JSONDataFile<T = any> {
 	#data: T | undefined;
 	#saveDebouncer: Debouncer;
 
+	getData(clone = false) {
+		if (clone && this.#data !== undefined) {
+			return JSON.parse(JSON.stringify(this.#data));
+		}
+		return this.#data;
+	}
+
 	constructor(
 		private filepath: string,
 		options?: Partial<DataFileOptions>,
