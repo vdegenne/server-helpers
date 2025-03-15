@@ -1,39 +1,42 @@
-class FieldValidationError extends Error {
-	constructor(message: string) {
-		super(message);
-		this.name = 'FieldValidationError';
-	}
-}
-
 /**
  * Enum to define the strategies for field validation.
  */
 export enum FieldCheckStrategy {
-	/**
-	 * All fields from `allFields` must be present in the body.
-	 * If any are missing, an error will be thrown.
-	 */
 	ALL_REQUIRED = 'allRequired',
-
-	/**
-	 * At least one field from `allFields` must be present in the body.
-	 * If none are provided, an error will be thrown.
-	 */
 	AT_LEAST_ONE = 'atLeastOne',
 }
 
-export function checkFields(
+/**
+ * A helper function to filter and validate the fields in the request body.
+ * @param ctx - The Koa context.
+ * @param allFields - A list of field names (keys) to check in the body.
+ * @param strategy - The field check strategy to apply.
+ * @returns The filtered body, containing only the allowed fields.
+ */
+export function checkFields<T extends object>(
 	ctx: any,
-	allFields: string[],
+	allFields: (keyof T)[],
+	strategy: FieldCheckStrategy.ALL_REQUIRED,
+): T;
+
+export function checkFields<T extends object>(
+	ctx: any,
+	allFields: (keyof T)[],
+	strategy: FieldCheckStrategy.AT_LEAST_ONE,
+): Partial<T>;
+
+export function checkFields<T extends object>(
+	ctx: any,
+	allFields: (keyof T)[],
 	strategy: FieldCheckStrategy,
-) {
+): T | Partial<T> {
 	const body = ctx.request.body;
 
-	// Filter out alien properties
+	// Filter out alien properties from body
 	const filteredBody = Object.keys(body)
-		.filter((key) => allFields.includes(key))
-		.reduce<{[key: string]: any}>((obj, key) => {
-			obj[key] = body[key];
+		.filter((key) => allFields.includes(key as keyof T)) // Type-safe filtering
+		.reduce<{[K in keyof T]?: T[K]}>((obj, key) => {
+			obj[key as keyof T] = body[key as keyof T];
 			return obj;
 		}, {});
 
@@ -53,8 +56,7 @@ export function checkFields(
 		}
 	}
 
-	// Store the filtered body in ctx.state.body
 	ctx.state.body = filteredBody;
 
-	return filteredBody;
+	return filteredBody as any; // Return the filtered body with the correct type
 }
