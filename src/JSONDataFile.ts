@@ -14,14 +14,14 @@ interface DataFileOptions {
 
 export class JSONDataFile<T = any> {
 	#options: DataFileOptions;
-	#data: T | undefined;
+	protected _data: T | undefined;
 	#saveDebouncer: Debouncer;
 
 	getData(clone = false) {
-		if (clone && this.#data !== undefined) {
-			return JSON.parse(JSON.stringify(this.#data));
+		if (clone && this._data !== undefined) {
+			return JSON.parse(JSON.stringify(this._data));
 		}
-		return this.#data;
+		return this._data;
 	}
 
 	constructor(
@@ -40,27 +40,27 @@ export class JSONDataFile<T = any> {
 
 	loadComplete: Promise<T | undefined> = Promise.resolve(undefined);
 
-	async load() {
+	load() {
 		return (this.loadComplete = new Promise(async (resolve) => {
 			try {
 				const fileContent = await fs.readFile(this.filepath, 'utf-8');
-				this.#data = JSON.parse(fileContent);
+				this._data = JSON.parse(fileContent);
 			} catch (err) {
 				console.error(`Failed to load file ${this.filepath}:`, err);
-				this.#data = undefined; // Handle missing or corrupt files
+				this._data = undefined; // Handle missing or corrupt files
 			} finally {
-				resolve(this.#data);
+				resolve(this._data);
 			}
 		}));
 	}
 
 	async #save(data?: T) {
-		const newData = data ?? this.#data;
+		const newData = data ?? this._data;
 		if (newData === undefined) return;
 
 		try {
 			await fs.writeFile(this.filepath, JSON.stringify(newData, null, 2));
-			this.#data = newData; // Update only after a successful save
+			this._data = newData; // Update only after a successful save
 		} catch (err) {
 			console.error(`Failed to save file ${this.filepath}:`, err);
 		}

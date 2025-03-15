@@ -37,6 +37,14 @@
 		"./JSONDataFile.js": {
 			"default": "./lib/JSONDataFile.js",
 			"types": "./lib/JSONDataFile.d.ts"
+		},
+		"./ArrayJSONDataFile.js": {
+			"default": "./lib/ArrayJSONDataFile.js",
+			"types": "./lib/ArrayJSONDataFile.d.ts"
+		},
+		"./checkFields.js": {
+			"default": "./lib/checkFields.js",
+			"types": "./lib/checkFields.d.ts"
 		}
 	}
 }
