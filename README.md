@@ -1,7 +1,10 @@
 ## checkFields
 
 ```ts
-import {checkFields} from '@vdegenne/server-helpers/checkFields.js';
+import {
+	checkFields,
+	FieldCheckStrategy,
+} from '@vdegenne/server-helpers/checkFields.js';
 
 const allFields = ['name', 'age', 'city']; // e.g. a person
 
