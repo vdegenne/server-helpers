@@ -2,7 +2,16 @@
  * Enum to define the strategies for field validation.
  */
 export enum FieldCheckStrategy {
+	/**
+	 * All fields from `allFields` must be present in the body.
+	 * If any are missing, an error will be thrown.
+	 */
 	ALL_REQUIRED = 'allRequired',
+
+	/**
+	 * At least one field from `allFields` must be present in the body.
+	 * If none are provided, an error will be thrown.
+	 */
 	AT_LEAST_ONE = 'atLeastOne',
 }
 

@@ -9,6 +9,11 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 		return data;
 	}
 
+	// getData(clone = false) {
+	// 	const data = super.getData(clone);
+	// 	return data ?? [];
+	// }
+
 	getNextId(): number {
 		if (!this._data || this._data.length === 0) return 0;
 		return Math.max(...this._data.map((item) => item.id ?? -1)) + 1;

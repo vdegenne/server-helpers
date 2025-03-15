@@ -17,7 +17,7 @@ export class JSONDataFile<T = any> {
 	protected _data: T | undefined;
 	#saveDebouncer: Debouncer;
 
-	getData(clone = false) {
+	getData(clone = false): T | undefined {
 		if (clone && this._data !== undefined) {
 			return JSON.parse(JSON.stringify(this._data));
 		}
