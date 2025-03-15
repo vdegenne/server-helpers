@@ -1,0 +1,40 @@
+{
+	"name": "@vdegenne/server-helpers",
+	"version": "0.0.1",
+	"type": "module",
+	"devDependencies": {
+		"@types/node": "^22.13.10",
+		"@vdegenne/debouncer": "^1.0.3",
+		"typescript": "^5.8.2",
+		"wireit": "^0.14.11"
+	},
+	"scripts": {
+		"build": "wireit"
+	},
+	"wireit": {
+		"build": {
+			"command": "tsc --pretty",
+			"clean": "if-file-deleted",
+			"files": [
+				"./tsconfig.json",
+				"./src"
+			],
+			"output": [
+				"./lib"
+			]
+		}
+	},
+	"files": [
+		"./lib/"
+	],
+	"exports": {
+		".": {
+			"default": "./lib/index.js",
+			"types": "./lib/index.d.ts"
+		},
+		"./JSONDataFile.js": {
+			"default": "./lib/JSONDataFile.js",
+			"types": "./lib/JSONDataFile.d.ts"
+		}
+	}
+}
