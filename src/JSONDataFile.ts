@@ -38,14 +38,20 @@ export class JSONDataFile<T = any> {
 		this.load().catch(console.error); // Ensure file is loaded
 	}
 
+	loadComplete: Promise<T | undefined> = Promise.resolve(undefined);
+
 	async load() {
-		try {
-			const fileContent = await fs.readFile(this.filepath, 'utf-8');
-			this.#data = JSON.parse(fileContent);
-		} catch (err) {
-			console.error(`Failed to load file ${this.filepath}:`, err);
-			this.#data = undefined; // Handle missing or corrupt files
-		}
+		return (this.loadComplete = new Promise(async (resolve) => {
+			try {
+				const fileContent = await fs.readFile(this.filepath, 'utf-8');
+				this.#data = JSON.parse(fileContent);
+			} catch (err) {
+				console.error(`Failed to load file ${this.filepath}:`, err);
+				this.#data = undefined; // Handle missing or corrupt files
+			} finally {
+				resolve(this.#data);
+			}
+		}));
 	}
 
 	async #save(data?: T) {
