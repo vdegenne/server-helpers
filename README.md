@@ -30,3 +30,5 @@ router.put('/api/person/:personId', (ctx) => {
 	// do something with `fields` (filtered body)
 });
 ```
+
+**Note: Do not wrap the call in a `try` block, it automatically stops execution and sends a 400 response for you (unless you want to redefine the error message)**
