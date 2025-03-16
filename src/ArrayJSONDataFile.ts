@@ -48,4 +48,8 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 		this._data = this._data.filter((item) => item.id !== id);
 		this.save();
 	}
+
+	getItemFromId(id: number) {
+		return (this._data ?? []).find((i) => i.id === id);
+	}
 }
