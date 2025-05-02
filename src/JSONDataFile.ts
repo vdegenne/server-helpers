@@ -24,6 +24,17 @@ interface DataFileOptions {
 	 * @default false
 	 */
 	beautifyJson: boolean;
+
+	/**
+	 * By default, file data is loaded and cached, it only changes when you decide to save new data.
+	 * You can pass `cache` set to false to the `getData` function to force reading file again
+	 * (e.g. if it was changed from another program.)
+	 * Or you can set this option to `false` to always get data from the file directly.
+	 * The data will still be cached.
+	 *
+	 * @default true
+	 */
+	cache: boolean;
 }
 
 export class JSONDataFile<T = any> {
@@ -31,7 +42,13 @@ export class JSONDataFile<T = any> {
 	protected _data: T | undefined;
 	#saveDebouncer: Debouncer;
 
-	getData(clone = false): T | undefined {
+	async getData(
+		cache = this.#options.cache,
+		clone = false,
+	): Promise<T | undefined> {
+		if (cache === false) {
+			await this.load();
+		}
 		if (clone && this._data !== undefined) {
 			return JSON.parse(JSON.stringify(this._data));
 		}
@@ -46,6 +63,7 @@ export class JSONDataFile<T = any> {
 			saveDebouncerTimeoutMs: 500, //
 			force: false,
 			beautifyJson: false,
+			cache: true,
 			...options,
 		};
 
