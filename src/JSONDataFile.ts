@@ -3,6 +3,14 @@ import fs from 'fs/promises';
 
 interface DataFileOptions {
 	/**
+	 * By default missing files are not automatically created but an error is thrown instead.
+	 * Set this option to `true` to create the file without exceptions.
+	 *
+	 * @default false
+	 */
+	force: boolean;
+
+	/**
 	 * When calling .save() multiple times in a short amount of time,
 	 * the function only gets executed one time.
 	 * This value defines the range.
@@ -28,30 +36,41 @@ export class JSONDataFile<T = any> {
 		private filepath: string,
 		options?: Partial<DataFileOptions>,
 	) {
-		this.#options = {saveDebouncerTimeoutMs: 500, ...options};
+		this.#options = {
+			saveDebouncerTimeoutMs: 500, //
+			force: false,
+			...options,
+		};
 
 		this.#saveDebouncer = new Debouncer(
 			(...args) => this.#save(...args),
 			this.#options.saveDebouncerTimeoutMs,
 		);
 
-		this.load().catch(console.error); // Ensure file is loaded
+		this.load().catch(console.error);
 	}
 
 	loadComplete: Promise<T | undefined> = Promise.resolve(undefined);
 
 	load() {
-		return (this.loadComplete = new Promise(async (resolve) => {
+		this.loadComplete = new Promise(async (resolve) => {
 			try {
 				const fileContent = await fs.readFile(this.filepath, 'utf-8');
 				this._data = JSON.parse(fileContent);
-			} catch (err) {
-				console.error(`Failed to load file ${this.filepath}:`, err);
-				this._data = undefined; // Handle missing or corrupt files
+			} catch (err: any) {
+				if (err.code === 'ENOENT' && this.#options.force) {
+					// File does not exist: create it with empty object
+					this._data = {} as T;
+					await this.#save(); // Save initial empty object
+				} else {
+					console.error(`Failed to load file ${this.filepath}:`, err);
+					this._data = undefined;
+				}
 			} finally {
 				resolve(this._data);
 			}
-		}));
+		});
+		return this.loadComplete;
 	}
 
 	async #save(data?: T) {
