@@ -3,6 +3,15 @@ import fs from 'fs/promises';
 
 interface DataFileOptions {
 	/**
+	 * When calling .save() multiple times in a short amount of time,
+	 * the function only gets executed one time.
+	 * This value defines the range.
+	 *
+	 * @default 500
+	 */
+	saveDebouncerTimeoutMs: number;
+
+	/**
 	 * By default missing files are not automatically created but an error is thrown instead.
 	 * Set this option to `true` to create the file without exceptions.
 	 *
@@ -11,13 +20,10 @@ interface DataFileOptions {
 	force: boolean;
 
 	/**
-	 * When calling .save() multiple times in a short amount of time,
-	 * the function only gets executed one time.
-	 * This value defines the range.
-	 *
-	 * @default 500
+	 * Whether or not the json data should be beautified when saved in the file.
+	 * @default false
 	 */
-	saveDebouncerTimeoutMs: number;
+	beautifyJson: boolean;
 }
 
 export class JSONDataFile<T = any> {
@@ -39,6 +45,7 @@ export class JSONDataFile<T = any> {
 		this.#options = {
 			saveDebouncerTimeoutMs: 500, //
 			force: false,
+			beautifyJson: false,
 			...options,
 		};
 
@@ -78,8 +85,12 @@ export class JSONDataFile<T = any> {
 		if (newData === undefined) return;
 
 		try {
-			await fs.writeFile(this.filepath, JSON.stringify(newData, null, 2));
-			this._data = newData; // Update only after a successful save
+			const json = this.#options.beautifyJson
+				? JSON.stringify(newData, null, 2)
+				: JSON.stringify(newData);
+
+			await fs.writeFile(this.filepath, json);
+			this._data = newData;
 		} catch (err) {
 			console.error(`Failed to save file ${this.filepath}:`, err);
 		}
