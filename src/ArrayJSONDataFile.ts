@@ -34,6 +34,7 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 		const index = this._data.findIndex((i) => i.id === id);
 		if (index >= 0) {
 			this._data[index] = newData;
+			this._data[index].id = id; // Just making sure the id is persisted
 			if (options && options.save === true) {
 				await this._save();
 			}
