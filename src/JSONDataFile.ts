@@ -98,17 +98,17 @@ export class JSONDataFile<T = any> {
 		return this.loadComplete;
 	}
 
-	async #save(data?: T) {
-		const newData = data ?? this._data;
-		if (newData === undefined) return;
+	async #save(data = this._data) {
+		// const data = data ?? this._data;
+		if (data === undefined) return;
 
 		try {
 			const json = this.#options.beautifyJson
-				? JSON.stringify(newData, null, 2)
-				: JSON.stringify(newData);
+				? JSON.stringify(data, null, 2)
+				: JSON.stringify(data);
 
 			await fs.writeFile(this.filepath, json);
-			this._data = newData;
+			this._data = data;
 		} catch (err) {
 			console.error(`Failed to save file ${this.filepath}:`, err);
 		}

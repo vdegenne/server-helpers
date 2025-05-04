@@ -29,6 +29,17 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 		}
 	}
 
+	change(id: number, newData: any, options?: {save: boolean}) {
+		if (!this._data) return;
+		const index = this._data.findIndex((i) => i.id === id);
+		if (index >= 0) {
+			this._data[index] = newData;
+		}
+		if (options && options.save === true) {
+			this.save();
+		}
+	}
+
 	push(item: T) {
 		if (!this._data) {
 			this._data = [];
