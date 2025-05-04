@@ -68,7 +68,7 @@ export class JSONDataFile<T = any> {
 		};
 
 		this.#saveDebouncer = new Debouncer(
-			(...args) => this.#save(...args),
+			(...args) => this._save(...args),
 			this.#options.saveDebouncerTimeoutMs,
 		);
 
@@ -86,7 +86,7 @@ export class JSONDataFile<T = any> {
 				if (err.code === 'ENOENT' && this.#options.force) {
 					// File does not exist: create it with empty object
 					this._data = {} as T;
-					await this.#save(); // Save initial empty object
+					await this._save(); // Save initial empty object
 				} else {
 					console.error(`Failed to load file ${this.filepath}:`, err);
 					this._data = undefined;
@@ -98,7 +98,7 @@ export class JSONDataFile<T = any> {
 		return this.loadComplete;
 	}
 
-	async #save(data = this._data) {
+	protected async _save(data = this._data) {
 		// const data = data ?? this._data;
 		if (data === undefined) return;
 
@@ -110,7 +110,7 @@ export class JSONDataFile<T = any> {
 			await fs.writeFile(this.filepath, json);
 			this._data = data;
 		} catch (err) {
-			console.error(`Failed to save file ${this.filepath}:`, err);
+			throw new Error(`Failed to save file ${this.filepath}: ${err}`);
 		}
 	}
 

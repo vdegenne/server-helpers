@@ -29,14 +29,14 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 		}
 	}
 
-	change(id: number, newData: any, options?: {save: boolean}) {
+	async change(id: number, newData: any, options?: {save: boolean}) {
 		if (!this._data) return;
 		const index = this._data.findIndex((i) => i.id === id);
 		if (index >= 0) {
 			this._data[index] = newData;
-		}
-		if (options && options.save === true) {
-			this.save();
+			if (options && options.save === true) {
+				await this._save();
+			}
 		}
 	}
 
@@ -62,5 +62,9 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 
 	getItemFromId(id: number) {
 		return (this._data ?? []).find((i) => i.id === id);
+	}
+
+	itemExistsFromId(id: number) {
+		return !!this.getItemFromId(id);
 	}
 }
