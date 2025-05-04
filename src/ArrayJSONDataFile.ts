@@ -1,5 +1,26 @@
 import {JSONDataFile} from './JSONDataFile.js';
 
+interface ChangeOptions {
+	/**
+	 * @default false
+	 */
+	save: boolean;
+
+	/**
+	 * Replace in-common properties but keep existing unchanged ones.
+	 *
+	 * @default false
+	 */
+	merge: boolean;
+
+	/**
+	 * When using `merge`, force unexisting properties to be inserted.
+	 *
+	 * @default false
+	 */
+	force: boolean;
+}
+
 export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 	T[]
 > {
@@ -29,15 +50,33 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 		}
 	}
 
-	async change(id: number, newData: any, options?: {save: boolean}) {
+	async change(id: number, newData: any, options?: Partial<ChangeOptions>) {
+		const _options: ChangeOptions = {
+			save: false,
+			force: false,
+			merge: false,
+			...(options ?? {}),
+		};
 		if (!this._data) return;
+
 		const index = this._data.findIndex((i) => i.id === id);
-		if (index >= 0) {
-			this._data[index] = newData;
-			this._data[index].id = id; // Just making sure the id is persisted
-			if (options && options.save === true) {
-				await this._save();
+		if (index === -1) return;
+
+		const currentItem = this._data[index];
+
+		if (_options.merge) {
+			// Only update existing keys unless `force` is true
+			for (const key of Object.keys(newData)) {
+				if (_options.force || key in currentItem) {
+					(currentItem as any)[key] = newData[key];
+				}
 			}
+		} else {
+			this._data[index] = {...newData, id}; // Replace all, but preserve id
+		}
+
+		if (_options.save) {
+			await this._save();
 		}
 	}
 
