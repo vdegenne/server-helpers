@@ -93,11 +93,14 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 		return item;
 	}
 
-	removeItem(id: number) {
+	removeItem(id: number, options: Partial<{save: boolean}> = {save: false}) {
 		if (!this._data) return;
 
 		this._data = this._data.filter((item) => item.id !== id);
-		this.save();
+
+		if (options.save) {
+			this.save();
+		}
 	}
 
 	getItemFromId(id: number) {
