@@ -1,7 +1,19 @@
 import {Debouncer} from '@vdegenne/debouncer';
 import fs from 'fs/promises';
 
-interface DataFileOptions {
+export interface SaveOptions {
+	/**
+	 * By default data file objects automatically saves data to files when the data changes.
+	 * Set this option to false to avoid that. You then have the responsibility to save them
+	 * manually, either by using the `save()` method directly or by passing `{save: true}` option
+	 * to the respective modification methods.
+	 *
+	 * @default true
+	 */
+	save: boolean;
+}
+
+interface DataFileOptions extends SaveOptions {
 	/**
 	 * When calling .save() multiple times in a short amount of time,
 	 * the function only gets executed one time.
@@ -20,12 +32,6 @@ interface DataFileOptions {
 	force: boolean;
 
 	/**
-	 * Whether or not the json data should be beautified when saved in the file.
-	 * @default false
-	 */
-	beautifyJson: boolean;
-
-	/**
 	 * By default, file data is loaded and cached, it only changes when you decide to save new data.
 	 * You can pass `cache` set to false to the `getData` function to force reading file again
 	 * (e.g. if it was changed from another program.)
@@ -35,15 +41,30 @@ interface DataFileOptions {
 	 * @default true
 	 */
 	cache: boolean;
+
+	/**
+	 * Whether or not the json data should be beautified when saved in the file.
+	 *
+	 * @default false
+	 */
+	beautifyJson: boolean;
 }
 
+const DEFAULTS: DataFileOptions = {
+	save: true,
+	saveDebouncerTimeoutMs: 500,
+	force: false,
+	cache: true,
+	beautifyJson: false,
+};
+
 export class JSONDataFile<T = any> {
-	#options: DataFileOptions;
+	protected _options: DataFileOptions;
 	protected _data: T | undefined;
 	#saveDebouncer: Debouncer;
 
 	async getData(
-		cache = this.#options.cache,
+		cache = this._options.cache,
 		clone = false,
 	): Promise<T | undefined> {
 		if (cache === false) {
@@ -59,17 +80,14 @@ export class JSONDataFile<T = any> {
 		private filepath: string,
 		options?: Partial<DataFileOptions>,
 	) {
-		this.#options = {
-			saveDebouncerTimeoutMs: 500, //
-			force: false,
-			beautifyJson: false,
-			cache: true,
+		this._options = {
+			...DEFAULTS,
 			...options,
 		};
 
 		this.#saveDebouncer = new Debouncer(
 			(...args) => this._save(...args),
-			this.#options.saveDebouncerTimeoutMs,
+			this._options.saveDebouncerTimeoutMs,
 		);
 
 		this.load().catch(console.error);
@@ -83,7 +101,7 @@ export class JSONDataFile<T = any> {
 				const fileContent = await fs.readFile(this.filepath, 'utf-8');
 				this._data = JSON.parse(fileContent);
 			} catch (err: any) {
-				if (err.code === 'ENOENT' && this.#options.force) {
+				if (err.code === 'ENOENT' && this._options.force) {
 					// File does not exist: create it with empty object
 					this._data = {} as T;
 					await this._save(); // Save initial empty object
@@ -103,7 +121,7 @@ export class JSONDataFile<T = any> {
 		if (data === undefined) return;
 
 		try {
-			const json = this.#options.beautifyJson
+			const json = this._options.beautifyJson
 				? JSON.stringify(data, null, 2)
 				: JSON.stringify(data);
 

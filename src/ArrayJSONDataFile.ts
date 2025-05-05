@@ -1,11 +1,6 @@
-import {JSONDataFile} from './JSONDataFile.js';
+import {JSONDataFile, type SaveOptions} from './JSONDataFile.js';
 
-interface ChangeOptions {
-	/**
-	 * @default false
-	 */
-	save: boolean;
-
+interface ChangeOptions extends SaveOptions {
 	/**
 	 * Replace in-common properties but keep existing unchanged ones.
 	 *
@@ -52,7 +47,7 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 
 	async change(id: number, newData: any, options?: Partial<ChangeOptions>) {
 		const _options: ChangeOptions = {
-			save: false,
+			save: this._options.save,
 			force: false,
 			merge: false,
 			...(options ?? {}),
@@ -80,7 +75,12 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 		}
 	}
 
-	push(item: T) {
+	async push(item: T, options?: Partial<SaveOptions>) {
+		const _options: SaveOptions = {
+			save: this._options.save,
+			...(options ?? {}),
+		};
+
 		if (!this._data) {
 			this._data = [];
 		}
@@ -88,20 +88,24 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 		this._data.push(item);
 		this.ensureIds();
 
-		this.save();
+		if (_options.save) {
+			await this._save();
+		}
 
 		return item;
 	}
 
-	async removeItem(
-		id: number,
-		options: Partial<{save: boolean}> = {save: false},
-	) {
+	async removeItem(id: number, options?: Partial<SaveOptions>) {
+		const _options: SaveOptions = {
+			save: this._options.save,
+			...(options ?? {}),
+		};
+
 		if (!this._data) return;
 
 		this._data = this._data.filter((item) => item.id !== id);
 
-		if (options.save) {
+		if (_options.save) {
 			await this._save();
 		}
 	}
