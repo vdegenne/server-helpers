@@ -93,13 +93,16 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 		return item;
 	}
 
-	removeItem(id: number, options: Partial<{save: boolean}> = {save: false}) {
+	async removeItem(
+		id: number,
+		options: Partial<{save: boolean}> = {save: false},
+	) {
 		if (!this._data) return;
 
 		this._data = this._data.filter((item) => item.id !== id);
 
 		if (options.save) {
-			this.save();
+			await this._save();
 		}
 	}
 
