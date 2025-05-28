@@ -1,8 +1,9 @@
 {
 	"name": "@vdegenne/server-helpers",
-	"version": "0.1.9",
+	"version": "0.2.2",
 	"type": "module",
 	"devDependencies": {
+		"@types/koa": "^2.15.0",
 		"@types/node": "^22.13.10",
 		"typescript": "^5.8.2",
 		"wireit": "^0.14.11"
@@ -31,19 +32,19 @@
 	],
 	"exports": {
 		".": {
-			"default": "./lib/index.js",
-			"types": "./lib/index.d.ts"
+			"import": "./lib/index.js",
+			"types": "./extra.d.ts"
 		},
 		"./JSONDataFile.js": {
-			"default": "./lib/JSONDataFile.js",
+			"import": "./lib/JSONDataFile.js",
 			"types": "./lib/JSONDataFile.d.ts"
 		},
 		"./ArrayJSONDataFile.js": {
-			"default": "./lib/ArrayJSONDataFile.js",
+			"import": "./lib/ArrayJSONDataFile.js",
 			"types": "./lib/ArrayJSONDataFile.d.ts"
 		},
 		"./checkFields.js": {
-			"default": "./lib/checkFields.js",
+			"import": "./lib/checkFields.js",
 			"types": "./lib/checkFields.d.ts"
 		}
 	}

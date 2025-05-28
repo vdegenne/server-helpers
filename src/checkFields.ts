@@ -1,71 +1,74 @@
-/**
- * Enum to define the strategies for field validation.
- */
-export enum FieldCheckStrategy {
-	/**
-	 * All fields from `allFields` must be present in the body.
-	 * If any are missing, an error will be thrown.
-	 */
-	ALL_REQUIRED = 'allRequired',
+import {type Context} from 'koa';
 
+interface CheckFieldsOptions<T> {
+	/* Koa context */
+	ctx?: Context;
+	/* All fields */
+	fields: (keyof T)[];
+	/* Required fields */
+	requireds: (keyof T)[];
 	/**
-	 * At least one field from `allFields` must be present in the body.
-	 * If none are provided, an error will be thrown.
+	 * If true, new fields (the ones not listed in fields) will pass the check
+	 * and will not be removed from the filtered body (returned type).
+	 *
+	 * @default false
 	 */
-	AT_LEAST_ONE = 'atLeastOne',
+	acceptNewFields: boolean;
+	/**
+	 * If the filtered body is empty, reject the request.
+	 *
+	 * @default true
+	 */
+	throwIfEmpty: boolean;
 }
 
-/**
- * A helper function to filter and validate the fields in the request body.
- * @param ctx - The Koa context.
- * @param allFields - A list of field names (keys) to check in the body.
- * @param strategy - The field check strategy to apply.
- * @returns The filtered body, containing only the allowed fields.
- */
-export function checkFields<T extends object>(
-	ctx: any,
-	allFields: (keyof T)[],
-	strategy: FieldCheckStrategy.ALL_REQUIRED,
-): T;
+const defaults: Omit<CheckFieldsOptions<any>, 'ctx'> = {
+	fields: [],
+	requireds: [],
+	acceptNewFields: false,
+	throwIfEmpty: true,
+};
 
-export function checkFields<T extends object>(
-	ctx: any,
-	allFields: (keyof T)[],
-	strategy: FieldCheckStrategy.AT_LEAST_ONE,
-): Partial<T>;
+export function checkFields<T>(options: Partial<CheckFieldsOptions<T>>) {
+	const _options: CheckFieldsOptions<T> = {
+		...(defaults as CheckFieldsOptions<T>),
+		...options,
+	};
+	if (_options.ctx === undefined) {
+		throw new Error('Context required');
+	}
+	const {ctx} = _options;
+	const {body} = ctx.request as any;
+	const bodyFields = Object.keys(body); // string[]
 
-export function checkFields<T extends object>(
-	ctx: any,
-	allFields: (keyof T)[],
-	strategy: FieldCheckStrategy,
-): T | Partial<T> {
-	const body = ctx.request.body;
+	let fields = _options.fields.map(String);
+	if (_options.acceptNewFields) {
+		fields.push(...bodyFields);
+	}
+	fields = [...new Set(fields)];
 
-	// Filter out alien properties from body
-	const filteredBody = Object.keys(body)
-		.filter((key) => allFields.includes(key as keyof T)) // Type-safe filtering
-		.reduce<{[K in keyof T]?: T[K]}>((obj, key) => {
-			obj[key as keyof T] = body[key as keyof T];
-			return obj;
-		}, {});
-
-	// Strategy enforcement
-	if (strategy === FieldCheckStrategy.ALL_REQUIRED) {
-		const missingFields = allFields.filter((field) => !(field in filteredBody));
-		if (missingFields.length > 0) {
-			ctx.throw(400, `Missing required fields: ${missingFields.join(', ')}`);
-		}
-	} else if (strategy === FieldCheckStrategy.AT_LEAST_ONE) {
-		const hasAtLeastOneField = allFields.some((field) => field in filteredBody);
-		if (!hasAtLeastOneField) {
-			ctx.throw(
-				400,
-				`At least one of the following fields must be provided: ${allFields.join(', ')}`,
-			);
-		}
+	const missingFields = _options.requireds
+		.map(String)
+		.filter((required) => !fields.includes(required));
+	if (missingFields.length > 0) {
+		ctx.throw(400, `Missing required fields: ${missingFields.join(', ')}`);
 	}
 
-	ctx.state.body = filteredBody;
+	const availableFields = bodyFields.filter((bodyField) =>
+		fields.includes(bodyField),
+	);
 
-	return filteredBody as any; // Return the filtered body with the correct type
+	if (availableFields.length === 0 && _options.throwIfEmpty) {
+		ctx.throw(
+			400,
+			`At least one of the following fields must be provided: ${_options.fields.join(
+				', ',
+			)}`,
+		);
+	}
+
+	return availableFields.reduce((obj, key) => {
+		obj[key as keyof T] = body[key];
+		return obj;
+	}, {} as Partial<T>);
 }
