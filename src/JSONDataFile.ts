@@ -24,12 +24,12 @@ interface DataFileOptions extends SaveOptions {
 	saveDebouncerTimeoutMs: number;
 
 	/**
-	 * By default missing files are not automatically created but an error is thrown instead.
-	 * Set this option to `true` to create the file without exceptions.
+	 * by default missing files aren't automatically created, an error is thrown instead.
+	 * set this option to `true` to create the file without exceptions.
 	 *
 	 * @default false
 	 */
-	force: boolean;
+	createIfNotExist: boolean;
 
 	/**
 	 * By default, file data is loaded and cached, it only changes when you decide to save new data.
@@ -53,7 +53,7 @@ interface DataFileOptions extends SaveOptions {
 const DEFAULTS: DataFileOptions = {
 	save: true,
 	saveDebouncerTimeoutMs: 500,
-	force: false,
+	createIfNotExist: false,
 	cache: true,
 	beautifyJson: false,
 };
@@ -101,7 +101,7 @@ export class JSONDataFile<T = any> {
 				const fileContent = await fs.readFile(this.filepath, 'utf-8');
 				this._data = JSON.parse(fileContent);
 			} catch (err: any) {
-				if (err.code === 'ENOENT' && this._options.force) {
+				if (err.code === 'ENOENT' && this._options.createIfNotExist) {
 					// File does not exist: create it with empty object
 					this._data = {} as T;
 					await this._save(); // Save initial empty object
