@@ -1,4 +1,8 @@
-import {JSONDataFile, type SaveOptions} from './JSONDataFile.js';
+import {
+	type DataFileOptions,
+	JSONDataFile,
+	type SaveOptions,
+} from './JsonDataFile.js';
 
 interface ChangeOptions extends SaveOptions {
 	/**
@@ -16,19 +20,22 @@ interface ChangeOptions extends SaveOptions {
 	force: boolean;
 }
 
-export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
-	T[]
-> {
+// TODO: rewrite code base on ArrayJsonDataFile.ts
+export class ArrayWithIdsJSONDataFile<
+	T extends {id?: number},
+> extends JSONDataFile<T[]> {
+	constructor(
+		protected filepath: string,
+		options?: Partial<DataFileOptions<T[]>>,
+	) {
+		super(filepath, {initialData: [], ...options});
+	}
+
 	async load() {
 		const data = await super.load();
 		this.ensureIds();
 		return data;
 	}
-
-	// getData(clone = false) {
-	// 	const data = super.getData(clone);
-	// 	return data ?? [];
-	// }
 
 	getNextId(): number {
 		if (!this._data || this._data.length === 0) return 0;
@@ -50,7 +57,7 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 			save: this._options.save,
 			force: false,
 			merge: false,
-			...(options ?? {}),
+			...options,
 		};
 		if (!this._data) return;
 
@@ -78,10 +85,12 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 	async push(item: T, options?: Partial<SaveOptions>) {
 		const _options: SaveOptions = {
 			save: this._options.save,
-			...(options ?? {}),
+			...options,
 		};
 
-		if (!this._data) {
+		await this.loadComplete;
+
+		if (this._data === undefined) {
 			this._data = [];
 		}
 
@@ -98,7 +107,7 @@ export class ArrayJSONDataFile<T extends {id?: number}> extends JSONDataFile<
 	async removeItem(id: number, options?: Partial<SaveOptions>) {
 		const _options: SaveOptions = {
 			save: this._options.save,
-			...(options ?? {}),
+			...options,
 		};
 
 		if (!this._data) return;

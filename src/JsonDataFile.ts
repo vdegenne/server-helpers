@@ -1,4 +1,5 @@
 import {Debouncer} from '@vdegenne/debouncer';
+import {type Logger} from '@vdegenne/debug';
 import fs from 'fs/promises';
 
 export interface SaveOptions {
@@ -13,7 +14,7 @@ export interface SaveOptions {
 	save: boolean;
 }
 
-interface DataFileOptions extends SaveOptions {
+export interface DataFileOptions<T = any> extends SaveOptions {
 	/**
 	 * When calling .save() multiple times in a short amount of time,
 	 * the function only gets executed one time.
@@ -48,6 +49,13 @@ interface DataFileOptions extends SaveOptions {
 	 * @default false
 	 */
 	beautifyJson: boolean;
+
+	/**
+	 * @default {}
+	 */
+	initialData: T;
+
+	logger: Logger | undefined;
 }
 
 const DEFAULTS: DataFileOptions = {
@@ -56,12 +64,18 @@ const DEFAULTS: DataFileOptions = {
 	createIfNotExist: false,
 	cache: true,
 	beautifyJson: false,
+	initialData: {},
+	logger: undefined,
 };
 
 export class JSONDataFile<T = any> {
-	protected _options: DataFileOptions;
+	protected _options: DataFileOptions<T>;
 	protected _data: T | undefined;
 	#saveDebouncer: Debouncer;
+
+	protected _getData(): T {
+		return this._data ?? this._options.initialData;
+	}
 
 	async getData(
 		cache = this._options.cache,
@@ -70,15 +84,17 @@ export class JSONDataFile<T = any> {
 		if (cache === false) {
 			await this.load();
 		}
-		if (clone && this._data !== undefined) {
-			return JSON.parse(JSON.stringify(this._data));
+		await this.loadComplete;
+		const data = this._getData();
+		if (clone && data !== undefined) {
+			return JSON.parse(JSON.stringify(data));
 		}
-		return this._data;
+		return data;
 	}
 
 	constructor(
-		private filepath: string,
-		options?: Partial<DataFileOptions>,
+		protected filepath: string,
+		options?: Partial<DataFileOptions<T>>,
 	) {
 		this._options = {
 			...DEFAULTS,
@@ -103,10 +119,15 @@ export class JSONDataFile<T = any> {
 			} catch (err: any) {
 				if (err.code === 'ENOENT' && this._options.createIfNotExist) {
 					// File does not exist: create it with empty object
-					this._data = {} as T;
+					this._data = this._options.initialData;
 					await this._save(); // Save initial empty object
 				} else {
-					console.error(`Failed to load file ${this.filepath}:`, err);
+					if (this._options.logger) {
+						this._options.logger.error(`Failed to load file ${this.filepath}:`);
+						this._options.logger.error(err);
+					} else {
+						console.error(`Failed to load file ${this.filepath}:`, err);
+					}
 					this._data = undefined;
 				}
 			} finally {
@@ -116,9 +137,10 @@ export class JSONDataFile<T = any> {
 		return this.loadComplete;
 	}
 
-	protected async _save(data = this._data) {
-		// const data = data ?? this._data;
-		if (data === undefined) return;
+	protected async _save(data = this._getData()) {
+		if (data === undefined) {
+			return;
+		}
 
 		try {
 			const json = this._options.beautifyJson

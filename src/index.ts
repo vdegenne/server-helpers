@@ -1,3 +1,3 @@
-export * from './JSONDataFile.js';
-export * from './ArrayJSONDataFile.js';
+export * from './JsonDataFile.js';
+export * from './ArrayWithIdsJsonDataFile.js';
 export * from './checkFields.js';

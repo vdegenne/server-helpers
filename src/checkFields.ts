@@ -1,8 +1,8 @@
-import {type Context} from 'koa';
+import {type ParameterizedContext} from 'koa';
 
 interface CheckFieldsOptions<T> {
 	/* Koa context */
-	ctx?: Context;
+	ctx?: ParameterizedContext;
 	/* All fields */
 	fields: (keyof T)[];
 	/* Required fields */
