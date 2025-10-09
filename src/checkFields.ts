@@ -49,7 +49,7 @@ export function checkFields<T>(options: Partial<CheckFieldsOptions<T>>) {
 
 	const missingFields = _options.requireds
 		.map(String)
-		.filter((required) => !fields.includes(required));
+		.filter((required) => !bodyFields.includes(required));
 	if (missingFields.length > 0) {
 		ctx.throw(400, `Missing required fields: ${missingFields.join(', ')}`);
 	}
