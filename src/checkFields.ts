@@ -1,8 +1,12 @@
-import {type ParameterizedContext} from 'koa';
+import type {
+	DefaultContext,
+	DefaultState,
+	ParameterizedContext,
+} from '@koa/router';
 
 interface CheckFieldsOptions<T> {
 	/* Koa context */
-	ctx?: ParameterizedContext;
+	ctx?: ParameterizedContext<DefaultState, DefaultContext>;
 	/* All fields */
 	fields: (keyof T)[];
 	/* Required fields */
