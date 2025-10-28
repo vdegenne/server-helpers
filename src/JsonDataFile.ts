@@ -102,7 +102,7 @@ export class JSONDataFile<T = any> {
 		};
 
 		this.#saveDebouncer = new Debouncer(
-			(...args) => this._save(...args),
+			(data?: T) => this._save(data),
 			this._options.saveDebouncerTimeoutMs,
 		);
 

@@ -57,7 +57,7 @@ export class ArrayJsonDataFile<T = any> extends JSONDataFile<T[]> {
 		this._data.push(item);
 
 		if (_options.save) {
-			await this._save();
+			await this.save();
 		}
 
 		return item;
@@ -83,7 +83,7 @@ export class ArrayJsonDataFile<T = any> extends JSONDataFile<T[]> {
 		}
 
 		if (_options.save) {
-			await this._save();
+			await this.save();
 		}
 
 		return item;
@@ -105,7 +105,7 @@ export class ArrayJsonDataFile<T = any> extends JSONDataFile<T[]> {
 
 		if (_options.save) {
 			// TODO: probably should remove await and make an external save promise
-			await this._save();
+			await this.save();
 		}
 	}
 }

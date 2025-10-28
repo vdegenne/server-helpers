@@ -78,7 +78,7 @@ export class ArrayWithIdsJSONDataFile<
 		}
 
 		if (_options.save) {
-			await this._save();
+			await this.save();
 		}
 	}
 
@@ -98,7 +98,7 @@ export class ArrayWithIdsJSONDataFile<
 		this.ensureIds();
 
 		if (_options.save) {
-			await this._save();
+			await this.save();
 		}
 
 		return item;
@@ -115,7 +115,7 @@ export class ArrayWithIdsJSONDataFile<
 		this._data = this._data.filter((item) => item.id !== id);
 
 		if (_options.save) {
-			await this._save();
+			await this.save();
 		}
 	}
 
