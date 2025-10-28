@@ -104,7 +104,7 @@ export class ArrayWithIdsJSONDataFile<
 		return item;
 	}
 
-	async removeItem(id: number, options?: Partial<SaveOptions>) {
+	async deleteItem(id: number, options?: Partial<SaveOptions>) {
 		const _options: SaveOptions = {
 			save: this._options.save,
 			...options,
@@ -112,11 +112,16 @@ export class ArrayWithIdsJSONDataFile<
 
 		if (!this._data) return;
 
-		this._data = this._data.filter((item) => item.id !== id);
+		const deleteds = this._data.splice(
+			this._data.findIndex((i) => i.id === id) >>> 0,
+			1,
+		);
 
-		if (_options.save) {
+		if (deleteds.length > 0 && _options.save) {
 			await this.save();
 		}
+
+		return deleteds[0];
 	}
 
 	getItemFromId(id: number) {
