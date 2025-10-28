@@ -155,6 +155,6 @@ export class JSONDataFile<T = any> {
 	}
 
 	save(data?: T) {
-		this.#saveDebouncer.call(data);
+		return this.#saveDebouncer.call(data);
 	}
 }
