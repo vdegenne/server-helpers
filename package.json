@@ -1,6 +1,6 @@
 {
 	"name": "@vdegenne/server-helpers",
-	"version": "0.2.8",
+	"version": "0.2.9",
 	"type": "module",
 	"devDependencies": {
 		"@types/node": "^24.9.1",

@@ -77,10 +77,7 @@ export class JSONDataFile<T = any> {
 		return this._data ?? this._options.initialData;
 	}
 
-	async getData(
-		cache = this._options.cache,
-		clone = false,
-	): Promise<T | undefined> {
+	async getData(cache = this._options.cache, clone = false): Promise<T> {
 		if (cache === false) {
 			await this.load();
 		}

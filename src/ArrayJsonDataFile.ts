@@ -89,7 +89,7 @@ export class ArrayJsonDataFile<T = any> extends JSONDataFile<T[]> {
 		return item;
 	}
 
-	async removeItem(item: T, options?: Partial<SaveOptions>) {
+	async deleteItem(item: T, options?: Partial<SaveOptions>) {
 		const _options: SaveOptions = {
 			save: this._options.save,
 			...options,
@@ -100,7 +100,7 @@ export class ArrayJsonDataFile<T = any> extends JSONDataFile<T[]> {
 			return;
 		}
 
-		this._options.logger?.log('Removing item');
+		this._options.logger?.log('Deleting item');
 		this._data!.splice(index, 1);
 
 		if (_options.save) {
