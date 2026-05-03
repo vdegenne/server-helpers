@@ -98,7 +98,7 @@ export class JSONDataFile<T = any> {
 			...options,
 		};
 
-		this.#saveDebouncer = new Debouncer(
+		this.#saveDebouncer = new Debouncer<any, T[]>(
 			(data?: T) => this._save(data),
 			this._options.saveDebouncerTimeoutMs,
 		);
@@ -146,6 +146,7 @@ export class JSONDataFile<T = any> {
 
 			await fs.writeFile(this.filepath, json);
 			this._data = data;
+			return data;
 		} catch (err) {
 			throw new Error(`Failed to save file ${this.filepath}: ${err}`);
 		}
