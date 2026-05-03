@@ -98,7 +98,7 @@ export class JSONDataFile<T = any> {
 			...options,
 		};
 
-		this.#saveDebouncer = new Debouncer<any, T[]>(
+		this.#saveDebouncer = new Debouncer(
 			(data?: T) => this._save(data),
 			this._options.saveDebouncerTimeoutMs,
 		);
