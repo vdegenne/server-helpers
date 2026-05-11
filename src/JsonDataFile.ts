@@ -45,10 +45,11 @@ export interface DataFileOptions<T = any> extends SaveOptions {
 
 	/**
 	 * Whether or not the json data should be beautified when saved in the file.
+	 * If a string is passed, use the string to format (.e.g "\t").
 	 *
 	 * @default false
 	 */
-	beautifyJson: boolean;
+	beautifyJson: boolean | string;
 
 	/**
 	 * @default {}
@@ -141,7 +142,13 @@ export class JSONDataFile<T = any> {
 
 		try {
 			const json = this._options.beautifyJson
-				? JSON.stringify(data, null, 2)
+				? JSON.stringify(
+						data,
+						null,
+						typeof this._options.beautifyJson === 'boolean'
+							? 2
+							: this._options.beautifyJson,
+					)
 				: JSON.stringify(data);
 
 			await fs.writeFile(this.filepath, json);
